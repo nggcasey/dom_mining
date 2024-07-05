@@ -4,9 +4,9 @@ local Input = lib.inputDialog
 
 local isBreakdown = false
 local isMining = false
-local isProcess = false 
+local isProcess = false
 
-if Config.Blip.Toggle then 
+if Config.Blip.Toggle then
   local blip = AddBlipForCoord(Config.Blip.Location)
   SetBlipSprite(blip, 1)
   SetBlipDisplay(blip, 2)
@@ -15,26 +15,26 @@ if Config.Blip.Toggle then
   AddTextEntry('MINING BLIP', 'Mining')
   BeginTextCommandSetBlipName('MINING BLIP')
   EndTextCommandSetBlipName(blip)
-end 
+end
 
 function FetchModel(model)
   RequestModel(GetHashKey(model))
-  while not HasModelLoaded(model) do 
+  while not HasModelLoaded(model) do
     Wait(100)
   end
-end 
+end
 
 local LocalNPCs = {}
 
 function GetLocalNPC(index)
   return LocalNPCs[index]
-end 
+end
 
 function CreateLocalNPC(index)
-  if (LocalNPCs[index]) then 
+  if (LocalNPCs[index]) then
     DestroyLocalNPC(index)
   end
-    
+
   LocalNPCs[index] = {}
   local cfg = Config.Exchange[index]
 
@@ -48,15 +48,15 @@ function CreateLocalNPC(index)
   SetPedComponentVariation(npc,0,0,1,0) -- Hair
   SetPedComponentVariation(npc,9,0,1,0) -- Gloves
   SetPedComponentVariation(npc,8,0,1,0) -- vest
-  LocalNPCs[index].npc = npc 
-end 
+  LocalNPCs[index].npc = npc
+end
 
 function DestroyLocalNPC(index)
-  if (LocalNPCs[index]) then 
+  if (LocalNPCs[index]) then
     DeleteEntity(LocalNPCs[index].npc)
     LocalNPCs[index] = nill
-  end 
-end 
+  end
+end
 
 --! Drill spawn + target options
 local drillcfg = Config.Drill[1]
@@ -68,10 +68,10 @@ local drillOptions = {
       icon = 'fa-regular fa-gem',
       label = 'Open Gemrock',
       onSelect = function()
-        if isBreakdown then return end 
+        if isBreakdown then return end
         isBreakdown = true
         TriggerServerEvent("mining:gemBreakdown")
-      end 
+      end
   }
 }
 Target:addLocalEntity(drillSpawn, drillOptions)
@@ -87,8 +87,8 @@ RegisterNetEvent("mining:drillCircle", function()
         clip = 'idle_a'
     },
     prop = {},
-  }) 
-  then 
+  })
+  then
     isBreakdown = false
     TriggerServerEvent("mining:gemReward")
     local cfg = Config.Notifications[1]
@@ -111,12 +111,12 @@ Target:addSphereZone({
           local input = Input(cfg.Name, cfg.Input)
 
           if not input then
-            return 
-          else 
-            if isProcess then return end 
+            return
+          else
+            if isProcess then return end
             isProcess = true
             TriggerServerEvent("mining:Process", input)
-          end 
+          end
          end
       }
   }
@@ -133,8 +133,8 @@ RegisterNetEvent("mining:processCircle", function(input, gemRocks)
       clip = 'fullcut_cycle_v1_cokecutter'
     },
     prop = {},
-  }) 
-  then 
+  })
+  then
     isProcess = false
     TriggerServerEvent("mining:processReward", input, gemRocks)
     local cfg = Config.Notifications[1]
@@ -147,22 +147,22 @@ function CreateRock(coords)
   local rock = CreateObject(GetHashKey('prop_rock_1_d'), coords, false)
   SetEntityHeading(rock, math.random(1,360) + 0.0)
   FreezeEntityPosition(rock, true)
-end 
+end
 
 for i = 1, #(Config.Zones[1].Location) do
   coords = Config.Zones[1].Location[i]
   CreateRock(coords)
-end 
+end
 
 local rockOptions = {{
   name = 'ox:option1',
   icon = 'fa-solid fa-hammer',
   label = 'Mine Rock',
   onSelect = function(data)
-    if isMining then return end 
+    if isMining then return end
     isMining = true
     TriggerServerEvent("mining:mineRock", data)
-  end 
+  end
 }}
 local rockNames = {'prop_rock_1_d'}
 Target:addModel(rockNames, rockOptions)
@@ -171,18 +171,19 @@ RegisterNetEvent("mining:progressBar", function(time, reward, data, animation,pr
   if lib.progressCircle({
     duration = time,
     label = 'Mining Rock',
+    canCancel = true,
     disable = {move = true},
     position = 'bottom',
     anim = animation,
     prop = props,
-  }) 
-  then 
+  })
+  then
     isMining = false
     local coords = GetEntityCoords(data.entity)
     TriggerServerEvent("mining:Reward", reward)
     DeleteEntity(data.entity)
     Wait(Config.Mining[4].RespawnTime)
-    CreateRock(coords) 
+    CreateRock(coords)
   end
 end)
 
@@ -198,24 +199,30 @@ RegisterNetEvent('dom_mining:ResetisBreakdown', function()
   isBreakdown = false
 end)
 
+AddEventHandler('baseevents:onPlayerDied', function()
+  isMining = false
+  isProcess = false
+  isBreakdown = false
+end)
+
 --! Distance check for NPC
 Citizen.CreateThread(function()
   while true do
     local wait = 1000
-    local ped = PlayerPedId() 
+    local ped = PlayerPedId()
     local pcoords = GetEntityCoords(ped)
-    for i=1, 1 do 
+    for i=1, 1 do
       local cfg = Config.Exchange[i]
       local coords = vector3(cfg.Location)
       local dist = #(pcoords - coords)
       local npc = GetLocalNPC(i)
-      if dist < cfg.RenderDistance then 
-        if (GetLocalNPC(i) == nill) then 
+      if dist < cfg.RenderDistance then
+        if (GetLocalNPC(i) == nill) then
           CreateLocalNPC(i)
-        end 
-      else 
+        end
+      else
         DestroyLocalNPC(i)
-      end 
+      end
     end
     Wait(wait)
   end
