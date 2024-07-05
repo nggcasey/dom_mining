@@ -1,6 +1,6 @@
-## Archived
+## Credits
 
-Due to other on going projects and school this repository has been archieved. Please join the discord to keep up with updates.
+Credit to <a href='https://github.com/DomScripts'>Dom</a> for the original resource which has now been archived.
 
 ## Preview
 
@@ -40,6 +40,3 @@ This resource includes:
 <p>Copy and paste the items into ox_inventory: [ox_inventory\data\items.lua]</p>
 <p>Copy and past the mining shop into ox_inventory: [ox_inventory\data\shops.lua]</p>
 <p>Start dom_mining after dependencies</p>
-
-## Need Support?
-<a href='https://discord.gg/8sVugr5VSv'>Discord</a>
